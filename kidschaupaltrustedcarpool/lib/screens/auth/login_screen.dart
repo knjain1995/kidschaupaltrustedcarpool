@@ -1,6 +1,8 @@
 // Importing Flutter's material design library
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart'; // Importing AuthService for authentication methods
+import 'package:kidschaupaltrustedcarpool/screens/auth/signup_screen.dart';
+import 'package:kidschaupaltrustedcarpool/screens/home_screen.dart';
+import '../../../services/auth_service.dart'; // Importing AuthService for authentication methods
 
 // LoginScreen is a StatefulWidget because user input fields need state management
 class LoginScreen extends StatefulWidget {
@@ -21,22 +23,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Function to handle the login process
   void _login() async {
-    // Retrieving user input and removing whitespace
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Calling signIn from AuthService
-    final user = await _authService.signIn(email, password);
-    if (user != null) {
-      // If login is successful, navigate to HomeScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      // If login fails, show an error message
+    try {
+      final user = await _authService.signIn(email, password);
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please try again.')),
+        SnackBar(content: Text('Login failed: ${e.toString()}')),
       );
     }
   }

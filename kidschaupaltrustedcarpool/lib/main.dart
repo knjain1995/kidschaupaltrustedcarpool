@@ -1,30 +1,25 @@
-// Importing the necessary Flutter and Firebase packages
-import 'package:flutter/material.dart'; // Flutter UI toolkit
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:kidschaupaltrustedcarpool/screens/login_screen.dart'; // For Firebase initialization
+import 'screens/auth/login_screen.dart';
 
-// The main function is the entry point of the Flutter application.
-// 'async' allows the use of 'await' for asynchronous operations.
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensures all widgets are initialized before Firebase
-  await Firebase.initializeApp(); // Initializes Firebase for the entire app
-  runApp(const MyApp()); // Runs the MyApp widget, which is the root of the app
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Initialize Firebase before running the app
+  runApp(const MyApp());
 }
 
-// The MyApp widget sets up the main configurations for the application, like theme and home screen.
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // Constructor
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp provides material design elements.
     return MaterialApp(
-      title: 'KidsChaupal Trusted Carpool', // Title of the app
-      debugShowCheckedModeBanner: false, // Hides the debug banner
+      title: 'KidsChaupal Trusted Carpool',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue, // Sets the primary theme color
+        primarySwatch: Colors.blue,
       ),
-      home: const LoginScreen(), // The first screen shown when the app starts (Login Screen)
+      home: const LoginScreen(),
     );
   }
 }
