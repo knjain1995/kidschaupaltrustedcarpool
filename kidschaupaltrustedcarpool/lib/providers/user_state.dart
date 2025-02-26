@@ -3,14 +3,16 @@
 
 import 'package:flutter/material.dart';
 
-/// 🌟 **User Model**: Represents the basic user details like first and last name.
-/// These details are fetched after login/signup and stored here for app-wide access.
-class UserModel {
-  final String firstName;
-  final String lastName;
+import '../models/user_model.dart';
 
-  UserModel({required this.firstName, required this.lastName});
-}
+// /// 🌟 **User Model**: Represents the basic user details like first and last name.
+// /// These details are fetched after login/signup and stored here for app-wide access.
+// class UserModel {
+//   final String firstName;
+//   final String lastName;
+
+//   UserModel({required this.firstName, required this.lastName});
+// }
 
 /// 🔄 **UserState**: Manages user-related data and state across the entire app.
 /// Using `ChangeNotifier` allows widgets to listen for updates when user data changes.
