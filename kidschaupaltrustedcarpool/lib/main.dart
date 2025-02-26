@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';  // ✅ Import Firebase Core
 import 'providers/user_state.dart';
 import 'screens/login/login_screen.dart';
-import 'firebase_options.dart';  // ✅ Generated file after Firebase CLI setup
+import 'firebase_options.dart';
+import 'screens/root/root_navigation_view.dart';  // ✅ Generated file after Firebase CLI setup
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ✅ Ensures binding for async calls
@@ -26,11 +27,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'KidsChaupal Trusted Carpool',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(userState: Provider.of<UserState>(context, listen: false)),
+      home: const RootNavigationView(), // Starts from RootNavigationView
+      routes: {
+        RootNavigationView.routeName: (ctx) => const RootNavigationView(),
+        LoginScreen.routeName: (ctx) => const LoginScreen(),
+      },
     );
   }
 }
