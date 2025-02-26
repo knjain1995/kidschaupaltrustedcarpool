@@ -1,83 +1,65 @@
+// This service handles all authentication logic using FirebaseAuth
+
 import 'package:firebase_auth/firebase_auth.dart';
 
+// ✅ AuthService: A class to manage user authentication processes (Signup, Login, Logout)
 class AuthService {
+  // 🌟 FirebaseAuth instance for authentication operations
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Sign up method with proper error handling
-  Future<User?> signUp(String email, String password) async {
+  // ✅ Signup function
+  // Takes user's email and password, attempts to create a Firebase account
+  Future<String?> signUp(String email, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      User? user = result.user; // Correctly access user from UserCredential
-      return user;
+      // 🛠 Create user with email and password
+      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return null; // ✅ Return null if signup is successful (no errors)
+    } on FirebaseAuthException catch (e) {
+      // ⚠️ Handle Firebase-specific signup errors
+      return e.message;
     } catch (e) {
-      print('Error signing up: $e');
-      rethrow; // Rethrow to be caught by the calling function
+      // ⚡ Handle any unexpected errors
+      return 'An unexpected error occurred during signup';
     }
   }
 
-  // Sign in method with proper response handling
-  Future<User?> signIn(String email, String password) async {
+  // ✅ Login function
+  // Takes user's email and password, attempts to sign them in
+  Future<String?> signIn(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      User? user = result.user; // Correctly access user from UserCredential
-      return user;
+      // 🛠 Sign in with FirebaseAuth
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return null; // ✅ Return null if login is successful
+    } on FirebaseAuthException catch (e) {
+      // ⚠️ Handle Firebase-specific login errors
+      return e.message;
     } catch (e) {
-      print('Error signing in: $e');
-      rethrow; // Rethrow for higher-level handling
+      // ⚡ Handle unexpected errors
+      return 'An unexpected error occurred during login';
     }
   }
 
-  // Sign out function
+  // 🚪 Logout function
+  // Signs the current user out of the app
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _auth.signOut(); // 🔒 Logs out the user
   }
+
+  // ✅ Stream to track authentication state (signed in/out)
+  // Useful for showing different screens based on login status
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 }
 
+// 📜 **Explanation:**
+// 1️⃣ signUp(): Creates a new Firebase user with email/password.
+// 2️⃣ signIn(): Logs in an existing user with email/password.
+// 3️⃣ signOut(): Logs out the user.
+// 4️⃣ authStateChanges: Listens for authentication state changes (logged in/out) in real-time.
 
-// // Importing FirebaseAuth for authentication-related operations
-// import 'package:firebase_auth/firebase_auth.dart';
+// 📝 **Usage:**
+// - Use AuthService().signUp() in SignupScreen for user registration.
+// - Use AuthService().signIn() in LoginScreen for user login.
+// - Use AuthService().signOut() for logging out users.
+// - Listen to AuthService().authStateChanges for authentication status changes.
 
-// // AuthService class handles all Firebase Authentication functionalities
-// class AuthService {
-//   // Creating an instance of FirebaseAuth to access its methods
-//   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-//   // Method to sign up users using email and password
-//   Future<User?> signUp(String email, String password) async {
-//     try {
-//       // 'createUserWithEmailAndPassword' creates a new user in Firebase
-//       UserCredential result = await _auth.createUserWithEmailAndPassword(
-//           email: email, password: password);
-//       return result.user; // Returns the User object on successful signup
-//     } catch (e) {
-//       // If an error occurs during signup, it will be printed here
-//       print('Error signing up: $e');
-//       return null; // Returns null if signup fails
-//     }
-//   }
-
-//   // Method to sign in users using email and password
-//   Future<User?> signIn(String email, String password) async {
-//     try {
-//       // 'signInWithEmailAndPassword' authenticates existing users
-//       UserCredential result = await _auth.signInWithEmailAndPassword(
-//           email: email, password: password);
-//       return result.user; // Returns the User object on successful sign-in
-//     } catch (e) {
-//       // Handles errors like incorrect credentials
-//       print('Error signing in: $e');
-//       return null; // Returns null if sign-in fails
-//     }
-//   }
-
-//   // Method to sign out the currently signed-in user
-//   Future<void> signOut() async {
-//     await _auth.signOut(); // Firebase method to sign out
-//   }
-// }
+// 🌟 All functions include error handling with descriptive messages that can be shown via Snackbars or Toasts.
