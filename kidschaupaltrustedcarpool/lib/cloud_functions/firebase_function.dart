@@ -1,78 +1,254 @@
+// 📄 **Firebase Functions** (Updated to align with CoRider structure and corrected UserModel fields)
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:kidschaupaltrustedcarpool/models/user_model.dart';
 
-/// 🔥 **FirebaseFunctions** handles all Firebase Authentication operations
-/// for the KidsChaupalTrustedCarpool application.
+/// 🔥 **FirebaseFunctions**: Handles all Firebase interactions (authentication & Firestore user management).
 class FirebaseFunctions {
-  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// ✅ **Authenticate User**: Logs in a user using Firebase Authentication.
-  /// Returns `null` on success, or an error message on failure.
+  /// 🔑 **Authenticate User**: Signs in a user using email and password.
+  /// Returns `null` if successful or an error message if failed.
   static Future<String?> authUser(LoginData data) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: data.name,
         password: data.password,
       );
-      return null; // 🎯 Successful login
+      if (credential.user != null) {
+        await fetchUserByEmail(data.name);
+      }
+      return null;
     } catch (e) {
       return 'Login failed: ${e.toString()}';
     }
   }
 
-  /// ✅ **Signup User**: Registers a new user in Firebase Authentication.
-  /// Converts the returned Firebase [User] object to [UserModel] and returns it.
-  static Future<UserModel?> signupUser(SignupData data) async {
+  /// 📝 **Signup User**: Registers a new user and stores additional data in Firestore.
+  /// Updated to map 'firstName' and 'lastName' to 'displayName' in UserModel.
+  /// Returns `null` if successful or an error message if failed.
+  static Future<String?> signupUser(SignupData data) async {
     try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: data.name!,
         password: data.password!,
       );
-
-      final firebaseUser = userCredential.user;
+      final firebaseUser = credential.user;
       if (firebaseUser != null) {
-        // Map Firebase User to UserModel
-        return UserModel(
+        final firstName = data.additionalSignupData?['firstName'] ?? '';
+        final lastName = data.additionalSignupData?['lastName'] ?? '';
+        final displayName = '$firstName $lastName'.trim();
+
+        final userModel = UserModel(
           uid: firebaseUser.uid,
           email: firebaseUser.email ?? '',
-          displayName: firebaseUser.displayName ?? '',
+          displayName: displayName,
         );
+        await _firestore
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .set(userModel.toJson());
       }
-      return null; // 🚫 User creation failed
+      return null;
     } catch (e) {
-      return null; // ❌ Error handled elsewhere
+      return 'Signup failed: ${e.toString()}';
     }
   }
 
-  /// 🔍 **Fetch User by Email**: Retrieves user details by email and maps to [UserModel].
+  /// 📩 **Fetch User By Email**: Retrieves user details from Firestore using the email address.
   static Future<UserModel?> fetchUserByEmail(String email) async {
     try {
-      final user = _firebaseAuth.currentUser;
-      if (user != null && user.email == email) {
-        return UserModel(
-          uid: user.uid,
-          email: user.email ?? '',
-          displayName: user.displayName ?? '',
-        );
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return UserModel.fromJson(querySnapshot.docs.first.data());
       }
-      return null; // 🚫 No matching user found
+      return null;
     } catch (e) {
-      rethrow; // ❌ Handle error in calling function
+      return null;
     }
   }
 
-  /// 🔄 **Recover Password**: Sends a password reset email via Firebase.
-  /// Returns `null` on success, or an error message on failure.
+  /// 🔄 **Recover Password**: Sends a password reset email.
   static Future<String?> recoverPassword(String email) async {
     try {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-      return null; // 🎯 Email sent successfully
+      await _auth.sendPasswordResetEmail(email: email);
+      return null;
     } catch (e) {
-      return 'Error sending password reset email: ${e.toString()}';
+      return 'Password recovery failed: ${e.toString()}';
     }
   }
 }
+
+
+
+// // 📄 **Firebase Functions** (Refactored to match CoRider structure)
+
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter_login/flutter_login.dart';
+// import 'package:kidschaupaltrustedcarpool/models/user_model.dart';
+
+// /// 🔥 **FirebaseFunctions**: Handles all Firebase interactions (authentication & Firestore user management).
+// class FirebaseFunctions {
+//   static final FirebaseAuth _auth = FirebaseAuth.instance;
+//   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+//   /// 🔑 **Authenticate User**: Signs in a user using email and password.
+//   /// Returns `null` if successful or an error message if failed.
+//   static Future<String?> authUser(LoginData data) async {
+//     try {
+//       final credential = await _auth.signInWithEmailAndPassword(
+//         email: data.name,
+//         password: data.password,
+//       );
+//       if (credential.user != null) {
+//         await fetchUserByEmail(data.name);
+//       }
+//       return null;
+//     } catch (e) {
+//       return 'Login failed: ${e.toString()}';
+//     }
+//   }
+
+//   /// 📝 **Signup User**: Registers a new user and stores additional data in Firestore.
+//   /// Returns `null` if successful or an error message if failed.
+//   static Future<String?> signupUser(SignupData data) async {
+//     try {
+//       final credential = await _auth.createUserWithEmailAndPassword(
+//         email: data.name!,
+//         password: data.password!,
+//       );
+//       final firebaseUser = credential.user;
+//       if (firebaseUser != null) {
+//         final userModel = UserModel(
+//           uid: firebaseUser.uid,
+//           email: firebaseUser.email ?? '',
+//           firstName: data.additionalSignupData?['firstName'] ?? '',
+//           lastName: data.additionalSignupData?['lastName'] ?? '',
+//         );
+//         await _firestore
+//             .collection('users')
+//             .doc(firebaseUser.uid)
+//             .set(userModel.toJson());
+//       }
+//       return null;
+//     } catch (e) {
+//       return 'Signup failed: ${e.toString()}';
+//     }
+//   }
+
+//   /// 📩 **Fetch User By Email**: Retrieves user details from Firestore using the email address.
+//   static Future<UserModel?> fetchUserByEmail(String email) async {
+//     try {
+//       final querySnapshot = await _firestore
+//           .collection('users')
+//           .where('email', isEqualTo: email)
+//           .limit(1)
+//           .get();
+//       if (querySnapshot.docs.isNotEmpty) {
+//         return UserModel.fromJson(querySnapshot.docs.first.data());
+//       }
+//       return null;
+//     } catch (e) {
+//       return null;
+//     }
+//   }
+
+//   /// 🔄 **Recover Password**: Sends a password reset email.
+//   static Future<String?> recoverPassword(String email) async {
+//     try {
+//       await _auth.sendPasswordResetEmail(email: email);
+//       return null;
+//     } catch (e) {
+//       return 'Password recovery failed: ${e.toString()}';
+//     }
+//   }
+// }
+
+
+
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter_login/flutter_login.dart';
+// import 'package:kidschaupaltrustedcarpool/models/user_model.dart';
+
+// /// 🔥 **FirebaseFunctions** handles all Firebase Authentication operations
+// /// for the KidsChaupalTrustedCarpool application.
+// class FirebaseFunctions {
+//   static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+//   /// ✅ **Authenticate User**: Logs in a user using Firebase Authentication.
+//   /// Returns `null` on success, or an error message on failure.
+//   static Future<String?> authUser(LoginData data) async {
+//     try {
+//       await _firebaseAuth.signInWithEmailAndPassword(
+//         email: data.name,
+//         password: data.password,
+//       );
+//       return null; // 🎯 Successful login
+//     } catch (e) {
+//       return 'Login failed: ${e.toString()}';
+//     }
+//   }
+
+//   /// ✅ **Signup User**: Registers a new user in Firebase Authentication.
+//   /// Converts the returned Firebase [User] object to [UserModel] and returns it.
+//   static Future<UserModel?> signupUser(SignupData data) async {
+//     try {
+//       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+//         email: data.name!,
+//         password: data.password!,
+//       );
+
+//       final firebaseUser = userCredential.user;
+//       if (firebaseUser != null) {
+//         // Map Firebase User to UserModel
+//         return UserModel(
+//           uid: firebaseUser.uid,
+//           email: firebaseUser.email ?? '',
+//           displayName: firebaseUser.displayName ?? '',
+//         );
+//       }
+//       return null; // 🚫 User creation failed
+//     } catch (e) {
+//       return null; // ❌ Error handled elsewhere
+//     }
+//   }
+
+//   /// 🔍 **Fetch User by Email**: Retrieves user details by email and maps to [UserModel].
+//   static Future<UserModel?> fetchUserByEmail(String email) async {
+//     try {
+//       final user = _firebaseAuth.currentUser;
+//       if (user != null && user.email == email) {
+//         return UserModel(
+//           uid: user.uid,
+//           email: user.email ?? '',
+//           displayName: user.displayName ?? '',
+//         );
+//       }
+//       return null; // 🚫 No matching user found
+//     } catch (e) {
+//       rethrow; // ❌ Handle error in calling function
+//     }
+//   }
+
+//   /// 🔄 **Recover Password**: Sends a password reset email via Firebase.
+//   /// Returns `null` on success, or an error message on failure.
+//   static Future<String?> recoverPassword(String email) async {
+//     try {
+//       await _firebaseAuth.sendPasswordResetEmail(email: email);
+//       return null; // 🎯 Email sent successfully
+//     } catch (e) {
+//       return 'Error sending password reset email: ${e.toString()}';
+//     }
+//   }
+// }
 
 
 

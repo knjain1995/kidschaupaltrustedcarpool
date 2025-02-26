@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:kidschaupaltrustedcarpool/providers/user_state.dart';
-import 'package:kidschaupaltrustedcarpool/screens/login/login_screen.dart';
+import 'package:kidschaupaltrustedcarpool/screens/login/login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
