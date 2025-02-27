@@ -20,6 +20,7 @@ class FirebaseFunctions {
       final firebaseUser = credential.user;
       if (firebaseUser != null) {
         final userModel = await fetchUserByEmail(data.name);
+        print("✅ User found: ${userModel.toString()}");
         if (userModel == null) {
           return 'User data not found in Firestore.';
         }
@@ -51,7 +52,9 @@ class FirebaseFunctions {
         await _firestore
             .collection('users')
             .doc(firebaseUser.uid)
-            .set(userModel.toJson());
+            .set(userModel.toJson())
+            .then((_) => print("✅ User saved to Firestore"))
+            .catchError((e) => print("❌ Error saving user: $e"));
       }
       return null;
     } catch (e) {
@@ -77,14 +80,17 @@ class FirebaseFunctions {
   }
 
   /// 🔄 **Recover Password**: Sends a password reset email.
-  static Future<String?> recoverPassword(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      return null;
-    } catch (e) {
-      return 'Password recovery failed: ${e.toString()}';
-    }
+static Future<String?> recoverPassword(String email) async {
+  try {
+    await _auth.sendPasswordResetEmail(email: email);
+    print("✅ Password reset email sent to $email");
+    return null;
+  } catch (e) {
+    print("❌ Password reset failed: $e");
+    return 'Password recovery failed: ${e.toString()}';
   }
+}
+
 }
 
 // // 📄 **Firebase Functions** (Updated for consistency with CoRider structure and Firestore integration)
